@@ -1,3 +1,17 @@
+---
+  title: "HW4"
+date: today
+author: lin, Zhi-Da
+format:
+  pdf:
+  latex-engine: xelatex  
+include-in-header:
+  - text: |
+  \usepackage{setspace,relsize}
+mainfont: "Microsoft JhengHei UI"
+toc: true
+---
+
 # Load required libraries
 library(readxl)
 library(dplyr)
