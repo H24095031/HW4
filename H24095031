@@ -1,0 +1,36 @@
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(caret)
+library(DMwR2) # for SMOTE
+library(e1071)
+library(smotefamily)
+
+data <- read_excel("cleaned_dataset.xlsx")
+# Preprocess data
+data_r<- data %>%
+  mutate(v5 = ifelse(v5 == "(3號)", 1, 0)) %>% # Create target variable for candidate #3
+  filter(v5 != "遺漏值或跳答") %>% # Remove missing responses
+  mutate(across(where(is.character), as.factor)) # Convert character columns to factors
+
+
+weights <- ifelse(data_r$v5 == 1, 8.3, 1)
+data_r <- cbind(data_r,weights)
+
+# Split data into training and testing sets
+set.seed(123)
+trainIndex <- createDataPartition(data_r$v5, p = 0.7, list = FALSE)
+trainData <- data_r[trainIndex, ]
+testData <- data_r[-trainIndex, ]
+
+
+# Train a logistic regression model
+model <- glm(v5 ~ v1+v4+as.factor(v6)+as.factor(v7)+v8, data = trainData, family = binomial,weights = weights)
+summary(model)
+# Predict on test data
+predictions <- predict(model, testData, type = "response")
+predicted_classes <- ifelse(predictions > 0.5, 1, 0)
+
+# Model evaluation
+conf_matrix <- confusionMatrix(as.factor(predicted_classes), as.factor(testData$v5))
+print(conf_matrix)
